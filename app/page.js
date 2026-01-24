@@ -5,21 +5,72 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import translations from "./lib/translations";
 
-/* ---------- FIELD ZONE COMPONENT ---------- */
-function Zone({ name, status, color }) {
+/* ---------- PIPE NETWORK COMPONENT ---------- */
+function PipeNetwork({ cloggedBranch }) {
   return (
-    <div
+    <svg
+      viewBox="0 0 400 260"
+      width="100%"
+      height="260"
       style={{
         background: "#020617",
-        padding: "18px",
         borderRadius: "16px",
-        textAlign: "center",
-        border: `2px solid ${color}`
+        padding: "16px"
       }}
     >
-      <p style={{ fontWeight: 700 }}>{name}</p>
-      <p style={{ color, marginTop: "6px" }}>{status}</p>
-    </div>
+      {/* TANK */}
+      <rect x="170" y="10" width="60" height="30" rx="6" fill="#38bdf8" />
+      <text x="200" y="30" fill="#000" textAnchor="middle" fontWeight="700">
+        Tank
+      </text>
+
+      {/* MAIN PIPE */}
+      <line x1="200" y1="40" x2="200" y2="100" stroke="#38bdf8" strokeWidth="10" />
+
+      {/* SPLIT */}
+      <line x1="200" y1="100" x2="100" y2="150" stroke="#38bdf8" strokeWidth="10" />
+      <line x1="200" y1="100" x2="300" y2="150" stroke="#38bdf8" strokeWidth="10" />
+
+      {/* BRANCH A */}
+      <line
+        x1="100"
+        y1="150"
+        x2="100"
+        y2="220"
+        stroke={cloggedBranch === "A" ? "#ef4444" : "#22c55e"}
+        strokeWidth="10"
+      />
+
+      {/* BRANCH B */}
+      <line
+        x1="300"
+        y1="150"
+        x2="300"
+        y2="220"
+        stroke={cloggedBranch === "B" ? "#ef4444" : "#22c55e"}
+        strokeWidth="10"
+      />
+
+      {/* LABELS */}
+      <text x="100" y="245" fill="#fff" textAnchor="middle">
+        Branch A
+      </text>
+      <text x="300" y="245" fill="#fff" textAnchor="middle">
+        Branch B
+      </text>
+
+      {/* CLOG ICON */}
+      {cloggedBranch === "A" && (
+        <text x="100" y="185" fontSize="26" textAnchor="middle">
+          ❌
+        </text>
+      )}
+      {cloggedBranch === "B" && (
+        <text x="300" y="185" fontSize="26" textAnchor="middle">
+          ❌
+        </text>
+      )}
+    </svg>
   );
 }
 
@@ -61,7 +112,7 @@ function StatusCard({ title, value, level }) {
 export default function Dashboard() {
   const router = useRouter();
 
-  /* 🌍 LANGUAGE STATE */
+  /* 🌍 LANGUAGE */
   const [lang, setLang] = useState("en");
 
   useEffect(() => {
@@ -76,7 +127,9 @@ export default function Dashboard() {
     if (!farmerInfo) router.push("/welcome");
   }, [router]);
 
+  /* DEMO STATE */
   const isClogged = true;
+  const cloggedBranch = "A"; // change to "B" or null for demo
 
   return (
     <main
@@ -89,15 +142,10 @@ export default function Dashboard() {
       }}
     >
       {/* HEADER */}
-      <h1 style={{ fontWeight: 900, fontSize: "34px" }}>
-        {t.title}
-      </h1>
+      <h1 style={{ fontWeight: 900, fontSize: "34px" }}>{t.title}</h1>
+      <p style={{ color: "#94a3b8" }}>{t.subtitle}</p>
 
-      <p style={{ color: "#94a3b8" }}>
-        {t.subtitle}
-      </p>
-
-      {/* 🌍 LANGUAGE SELECTOR */}
+      {/* LANGUAGE SELECTOR */}
       <select
         value={lang}
         onChange={(e) => {
@@ -150,7 +198,7 @@ export default function Dashboard() {
         <StatusCard title={t.tankFlush} value="OFF" level={30} />
       </div>
 
-      {/* PIPELINE CONDITION */}
+      {/* PIPE NETWORK */}
       <section style={{ marginTop: "48px" }}>
         <h3>{t.pipeline}</h3>
 
@@ -162,47 +210,11 @@ export default function Dashboard() {
             borderRadius: "20px"
           }}
         >
-          <p style={{ fontWeight: 700 }}>Main Pipeline</p>
+          <PipeNetwork cloggedBranch={cloggedBranch} />
 
-          <div
-            style={{
-              marginTop: "12px",
-              height: "14px",
-              background: "#1f2937",
-              borderRadius: "999px",
-              overflow: "hidden"
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                width: isClogged ? "35%" : "95%",
-                background: isClogged
-                  ? "repeating-linear-gradient(45deg,#ef4444,#ef4444 10px,#7f1d1d 10px,#7f1d1d 20px)"
-                  : "linear-gradient(90deg,#38bdf8,#22c55e)",
-                transition: "width 1s"
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* FIELD VISUALIZATION */}
-      <section style={{ marginTop: "48px" }}>
-        <p style={{ color: "#9ca3af", marginBottom: "14px" }}>
-          {t.fieldZones}
-        </p>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3,1fr)",
-            gap: "14px"
-          }}
-        >
-          <Zone name="Zone A" status="Healthy" color="#22c55e" />
-          <Zone name="Zone B" status="Stress" color="#facc15" />
-          <Zone name="Zone C" status="Dry" color="#ef4444" />
+          <p style={{ color: "#9ca3af", marginTop: "12px", fontSize: "14px" }}>
+            Red section indicates detected clog in the irrigation pipeline.
+          </p>
         </div>
       </section>
 
