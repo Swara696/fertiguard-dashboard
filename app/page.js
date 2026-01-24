@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import translations from "./lib/translations";
 
 /* ---------- FIELD ZONE COMPONENT ---------- */
 function Zone({ name, status, color }) {
@@ -35,7 +36,6 @@ function StatusCard({ title, value, level }) {
       <p style={{ color: "#9ca3af" }}>{title}</p>
       <h2>{value}</h2>
 
-      {/* STATUS BAR */}
       <div
         style={{
           marginTop: "14px",
@@ -48,8 +48,7 @@ function StatusCard({ title, value, level }) {
           style={{
             width: `${level}%`,
             height: "100%",
-            background:
-              level > 60 ? "#22c55e" : "#facc15",
+            background: level > 60 ? "#22c55e" : "#facc15",
             borderRadius: "999px"
           }}
         />
@@ -61,6 +60,16 @@ function StatusCard({ title, value, level }) {
 /* ---------- DASHBOARD ---------- */
 export default function Dashboard() {
   const router = useRouter();
+
+  /* 🌍 LANGUAGE STATE */
+  const [lang, setLang] = useState("en");
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem("lang");
+    if (savedLang) setLang(savedLang);
+  }, []);
+
+  const t = translations[lang];
 
   useEffect(() => {
     const farmerInfo = localStorage.getItem("farmerInfo");
@@ -81,12 +90,33 @@ export default function Dashboard() {
     >
       {/* HEADER */}
       <h1 style={{ fontWeight: 900, fontSize: "34px" }}>
-        FertiGuard – Smart Pipeline Dashboard
+        {t.title}
       </h1>
 
       <p style={{ color: "#94a3b8" }}>
-        System telemetry, pipe health & field visualization
+        {t.subtitle}
       </p>
+
+      {/* 🌍 LANGUAGE SELECTOR */}
+      <select
+        value={lang}
+        onChange={(e) => {
+          setLang(e.target.value);
+          localStorage.setItem("lang", e.target.value);
+        }}
+        style={{
+          marginTop: "12px",
+          padding: "6px 12px",
+          borderRadius: "8px",
+          background: "#020617",
+          color: "#fff",
+          border: "1px solid #334155"
+        }}
+      >
+        <option value="en">English</option>
+        <option value="hi">हिंदी</option>
+        <option value="mr">मराठी</option>
+      </select>
 
       {/* STATUS BADGE */}
       <div
@@ -102,7 +132,7 @@ export default function Dashboard() {
           color: "#000"
         }}
       >
-        {isClogged ? "🔴 CLOG DETECTED" : "🟢 SYSTEM NORMAL"}
+        {isClogged ? `🔴 ${t.clogDetected}` : `🟢 ${t.systemNormal}`}
       </div>
 
       {/* STATUS CARDS */}
@@ -114,15 +144,15 @@ export default function Dashboard() {
           marginTop: "32px"
         }}
       >
-        <StatusCard title="Current Action" value="Monitoring" level={70} />
-        <StatusCard title="Pressure Wash" value="OFF" level={20} />
-        <StatusCard title="Acid Pump" value="OFF" level={10} />
-        <StatusCard title="Tank Flush" value="OFF" level={30} />
+        <StatusCard title={t.currentAction} value="Monitoring" level={70} />
+        <StatusCard title={t.pressureWash} value="OFF" level={20} />
+        <StatusCard title={t.acidPump} value="OFF" level={10} />
+        <StatusCard title={t.tankFlush} value="OFF" level={30} />
       </div>
 
       {/* PIPELINE CONDITION */}
       <section style={{ marginTop: "48px" }}>
-        <h3>Pipeline Condition</h3>
+        <h3>{t.pipeline}</h3>
 
         <div
           style={{
@@ -154,171 +184,25 @@ export default function Dashboard() {
               }}
             />
           </div>
-
-          {isClogged && (
-            <p
-              style={{
-                color: "#ef4444",
-                marginTop: "12px",
-                fontWeight: 700
-              }}
-            >
-              ⚠ Partial blockage detected in pipeline
-            </p>
-          )}
         </div>
       </section>
 
-      {/* TELEMETRY + HEALTH INDEX */}
+      {/* FIELD VISUALIZATION */}
       <section style={{ marginTop: "48px" }}>
-        <h3>System Telemetry & Health</h3>
+        <p style={{ color: "#9ca3af", marginBottom: "14px" }}>
+          {t.fieldZones}
+        </p>
 
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.2fr 1fr",
-            gap: "24px",
-            marginTop: "16px"
+            gridTemplateColumns: "repeat(3,1fr)",
+            gap: "14px"
           }}
         >
-          {/* FLOW TELEMETRY */}
-          <div
-            style={{
-              background: "rgba(17,24,39,0.9)",
-              padding: "24px",
-              borderRadius: "20px"
-            }}
-          >
-            <p style={{ color: "#9ca3af" }}>
-              Flow Rate Telemetry (L/min)
-            </p>
-
-            <div
-              style={{
-                marginTop: "14px",
-                height: "12px",
-                background: "#1f2937",
-                borderRadius: "999px",
-                position: "relative"
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  left: "30%",
-                  width: "40%",
-                  height: "100%",
-                  background: "#22c55e",
-                  borderRadius: "999px"
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "55%",
-                  top: "-6px",
-                  width: "4px",
-                  height: "24px",
-                  background: "#facc15"
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: "13px",
-                color: "#9ca3af",
-                marginTop: "8px"
-              }}
-            >
-              <span>Low (20)</span>
-              <span>Optimal (40–70)</span>
-              <span>High (90)</span>
-            </div>
-
-            <p style={{ marginTop: "12px", fontWeight: 700 }}>
-              Current Flow:{" "}
-              <span style={{ color: "#facc15" }}>
-                58 L/min
-              </span>
-            </p>
-          </div>
-
-          {/* PIPE HEALTH INDEX */}
-          <div
-            style={{
-              background: "rgba(17,24,39,0.9)",
-              padding: "24px",
-              borderRadius: "20px",
-              textAlign: "center"
-            }}
-          >
-            <p style={{ color: "#9ca3af" }}>
-              Pipe Health Index (PHI)
-            </p>
-
-            <div
-              style={{
-                width: "160px",
-                height: "160px",
-                margin: "16px auto",
-                borderRadius: "50%",
-                background:
-                  "conic-gradient(#22c55e 0% 72%, #1f2937 72% 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              <div
-                style={{
-                  width: "110px",
-                  height: "110px",
-                  borderRadius: "50%",
-                  background: "#020617",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "30px",
-                  fontWeight: 900
-                }}
-              >
-                72
-              </div>
-            </div>
-
-            <p style={{ color: "#22c55e", fontWeight: 700 }}>
-              Healthy
-            </p>
-          </div>
-        </div>
-
-        {/* FIELD VISUALIZATION */}
-        <div
-          style={{
-            marginTop: "32px",
-            background: "rgba(17,24,39,0.9)",
-            padding: "24px",
-            borderRadius: "20px"
-          }}
-        >
-          <p style={{ color: "#9ca3af", marginBottom: "14px" }}>
-            Field Irrigation Zones
-          </p>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3,1fr)",
-              gap: "14px"
-            }}
-          >
-            <Zone name="Zone A" status="Healthy" color="#22c55e" />
-            <Zone name="Zone B" status="Stress" color="#facc15" />
-            <Zone name="Zone C" status="Dry" color="#ef4444" />
-          </div>
+          <Zone name="Zone A" status="Healthy" color="#22c55e" />
+          <Zone name="Zone B" status="Stress" color="#facc15" />
+          <Zone name="Zone C" status="Dry" color="#ef4444" />
         </div>
       </section>
 
@@ -337,7 +221,7 @@ export default function Dashboard() {
             cursor: "pointer"
           }}
         >
-          View ML Predictions →
+          {t.viewML} →
         </button>
       </Link>
     </main>
