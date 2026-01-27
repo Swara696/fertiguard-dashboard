@@ -1,14 +1,8 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-
-export default function HomeRedirect() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/welcome");
-  }, [router]);
-
-  return null;
+export default function Home() {
+  return (
+    <div style={{ padding: 40 }}>
+      <h1>Home Page</h1>
+      <p>Go to /welcome or /dashboard manually</p>
+    </div>
+  );
 }

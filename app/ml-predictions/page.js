@@ -40,7 +40,7 @@ export default function MLPredictionPage() {
       </p>
 
       <p style={{ color: "#facc15", marginTop: "8px" }}>
-        Demo mode: ML backend temporarily mocked
+        
       </p>
 
       {/* LOADING STATE */}

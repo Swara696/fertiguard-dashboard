@@ -101,6 +101,11 @@ function StatusCard({ title, value, level }) {
 export default function Dashboard() {
   const [lang, setLang] = useState("en");
 
+  const [acidPump, setAcidPump] = useState(false);
+  const [tankFlush, setTankFlush] = useState(false);
+  const [pressureWash, setPressureWash] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+
   useEffect(() => {
     const l = localStorage.getItem("lang");
     if (l) setLang(l);
@@ -108,7 +113,7 @@ export default function Dashboard() {
 
   const t = translations[lang];
 
-  // Demo hardware state
+  // Demo clog state
   const isClogged = true;
   const cloggedBranch = "A";
 
@@ -123,9 +128,7 @@ export default function Dashboard() {
       }}
     >
       {/* HEADER */}
-      <h1 style={{ fontWeight: 900, fontSize: "34px" }}>
-        {t.title}
-      </h1>
+      <h1 style={{ fontWeight: 900, fontSize: "34px" }}>{t.title}</h1>
       <p style={{ color: "#94a3b8" }}>{t.subtitle}</p>
 
       {/* LANGUAGE */}
@@ -175,16 +178,15 @@ export default function Dashboard() {
           marginTop: "32px"
         }}
       >
-        <StatusCard title={t.currentAction} value="Monitoring" level={70} />
-        <StatusCard title={t.pressureWash} value="OFF" level={20} />
-        <StatusCard title={t.acidPump} value="OFF" level={10} />
-        <StatusCard title={t.tankFlush} value="OFF" level={30} />
+        <StatusCard title={t.currentAction} value="Chemical Clog Handling" level={80} />
+        <StatusCard title={t.pressureWash} value={pressureWash ? "ON" : "OFF"} level={pressureWash ? 90 : 20} />
+        <StatusCard title={t.acidPump} value={acidPump ? "ON" : "OFF"} level={acidPump ? 80 : 10} />
+        <StatusCard title={t.tankFlush} value={tankFlush ? "ON" : "OFF"} level={tankFlush ? 70 : 30} />
       </div>
 
       {/* PIPE NETWORK */}
       <section style={{ marginTop: "48px" }}>
         <h3>{t.pipeline}</h3>
-
         <div
           style={{
             marginTop: "16px",
@@ -195,12 +197,23 @@ export default function Dashboard() {
         >
           <PipeNetwork clogged={cloggedBranch} />
           <p style={{ color: "#9ca3af", marginTop: "12px", fontSize: "14px" }}>
-            Red pipe section indicates detected clog.
+            Red pipe section indicates detected chemical clog.
           </p>
         </div>
       </section>
 
-      {/* ML BUTTON */}
+      {/* CHEMICAL CONTROLS */}
+      <section style={{ marginTop: "48px" }}>
+        <h3>🧪 Chemical Clog Actions</h3>
+
+        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginTop: "16px" }}>
+          <button onClick={() => setShowWarning(true)}>🧪 Acid Pump</button>
+          <button onClick={() => setTankFlush(!tankFlush)}>🚿 Tank Flush</button>
+          <button onClick={() => setPressureWash(!pressureWash)}>💨 Pressure Wash</button>
+        </div>
+      </section>
+
+      {/* ML BUTTON (KEPT) */}
       <Link href="/ml-predictions">
         <button
           style={{
@@ -218,6 +231,46 @@ export default function Dashboard() {
           {t.viewML} →
         </button>
       </Link>
+
+      {/* ACID WARNING MODAL */}
+      {showWarning && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
+          <div
+            style={{
+              background: "#020617",
+              padding: "24px",
+              borderRadius: "16px",
+              width: "320px",
+              textAlign: "center"
+            }}
+          >
+            <h3>⚠ Acid Handling Warning</h3>
+            <p style={{ color: "#9ca3af", fontSize: "14px" }}>
+              Ensure proper dilution, safety gloves, and pressure limits before
+              activating acid pump.
+            </p>
+
+            <button
+              onClick={() => {
+                setAcidPump(!acidPump);
+                setShowWarning(false);
+              }}
+            >
+              ✅ Proceed
+            </button>
+            <button onClick={() => setShowWarning(false)}>❌ Cancel</button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
