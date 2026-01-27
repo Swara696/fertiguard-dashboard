@@ -122,10 +122,10 @@ export default function Dashboard() {
 
   const t = translations[lang];
 
-  useEffect(() => {
-    const farmerInfo = localStorage.getItem("farmerInfo");
-    if (!farmerInfo) router.push("/welcome");
-  }, [router]);
+ useEffect(() => {
+  router.push("/welcome");
+}, [router]);
+
 
   /* DEMO STATE */
   const isClogged = true;
