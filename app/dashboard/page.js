@@ -23,7 +23,7 @@ export default function WelcomePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Store farmer info (optional, but useful later)
+    // Save farmer info (optional but useful)
     localStorage.setItem("farmerInfo", JSON.stringify(form));
 
     // Go to dashboard
@@ -58,12 +58,14 @@ export default function WelcomePage() {
           Farmer Details
         </h1>
 
-        <p style={{ color: "#94a3b8", marginBottom: "24px" }}>
-          Enter basic farm information
+        <p style={{ color: "#94a3b8", marginTop: "6px", marginBottom: "24px" }}>
+          Please enter basic farm information
         </p>
 
-        {/* Farmer Name */}
-        <label style={labelStyle}>Farmer Name</label>
+        {/* NAME */}
+        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
+          Farmer Name
+        </label>
         <input
           type="text"
           name="name"
@@ -74,8 +76,10 @@ export default function WelcomePage() {
           style={inputStyle}
         />
 
-        {/* Contact */}
-        <label style={labelStyle}>Contact Number</label>
+        {/* CONTACT */}
+        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
+          Contact Number
+        </label>
         <input
           type="tel"
           name="contact"
@@ -86,8 +90,10 @@ export default function WelcomePage() {
           style={inputStyle}
         />
 
-        {/* Land Area */}
-        <label style={labelStyle}>Land Area (acres)</label>
+        {/* LAND AREA */}
+        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
+          Land Area (in acres)
+        </label>
         <input
           type="number"
           name="landArea"
@@ -98,8 +104,10 @@ export default function WelcomePage() {
           style={inputStyle}
         />
 
-        {/* Crop Type */}
-        <label style={labelStyle}>Crop Grown</label>
+        {/* CROP TYPE */}
+        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
+          Crop Grown
+        </label>
         <select
           name="crop"
           value={form.crop}
@@ -117,11 +125,11 @@ export default function WelcomePage() {
           <option value="Other">Other</option>
         </select>
 
-        {/* Submit */}
+        {/* SUBMIT */}
         <button
           type="submit"
           style={{
-            marginTop: "24px",
+            marginTop: "28px",
             width: "100%",
             padding: "14px",
             borderRadius: "14px",
@@ -140,7 +148,7 @@ export default function WelcomePage() {
   );
 }
 
-/* ---------- STYLES ---------- */
+/* ---------- INPUT STYLE ---------- */
 const inputStyle = {
   width: "100%",
   padding: "12px",
@@ -151,9 +159,4 @@ const inputStyle = {
   background: "#020617",
   color: "#fff",
   fontSize: "15px"
-};
-
-const labelStyle = {
-  fontSize: "14px",
-  color: "#9ca3af"
 };
