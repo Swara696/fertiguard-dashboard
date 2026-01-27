@@ -1,138 +1,212 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import translations from "../lib/translations";
 
-export default function WelcomePage() {
-  const router = useRouter();
+/* ---------- PIPE NETWORK ---------- */
+function PipeNetwork({ clogged }) {
+  return (
+    <svg
+      viewBox="0 0 400 260"
+      width="100%"
+      height="260"
+      style={{
+        background: "#020617",
+        borderRadius: "16px",
+        padding: "16px"
+      }}
+    >
+      {/* Tank */}
+      <rect x="170" y="10" width="60" height="30" rx="6" fill="#38bdf8" />
+      <text x="200" y="30" fill="#000" textAnchor="middle" fontWeight="700">
+        Tank
+      </text>
 
-  const [form, setForm] = useState({
-    name: "",
-    contact: "",
-    landArea: "",
-    crop: ""
-  });
+      {/* Main Pipe */}
+      <line x1="200" y1="40" x2="200" y2="100" stroke="#38bdf8" strokeWidth="10" />
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
+      {/* Split */}
+      <line x1="200" y1="100" x2="100" y2="150" stroke="#38bdf8" strokeWidth="10" />
+      <line x1="200" y1="100" x2="300" y2="150" stroke="#38bdf8" strokeWidth="10" />
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+      {/* Branch A */}
+      <line
+        x1="100"
+        y1="150"
+        x2="100"
+        y2="220"
+        stroke={clogged === "A" ? "#ef4444" : "#22c55e"}
+        strokeWidth="10"
+      />
 
-    // Save farmer info (optional but useful)
-    localStorage.setItem("farmerInfo", JSON.stringify(form));
+      {/* Branch B */}
+      <line
+        x1="300"
+        y1="150"
+        x2="300"
+        y2="220"
+        stroke={clogged === "B" ? "#ef4444" : "#22c55e"}
+        strokeWidth="10"
+      />
 
-    // Go to dashboard
-    router.push("/dashboard");
-  };
+      <text x="100" y="245" fill="#fff" textAnchor="middle">
+        Branch A
+      </text>
+      <text x="300" y="245" fill="#fff" textAnchor="middle">
+        Branch B
+      </text>
+
+      {clogged === "A" && <text x="100" y="185" fontSize="26">❌</text>}
+      {clogged === "B" && <text x="300" y="185" fontSize="26">❌</text>}
+    </svg>
+  );
+}
+
+/* ---------- STATUS CARD ---------- */
+function StatusCard({ title, value, level }) {
+  return (
+    <div
+      style={{
+        background: "rgba(17,24,39,0.9)",
+        padding: "24px",
+        borderRadius: "20px"
+      }}
+    >
+      <p style={{ color: "#9ca3af" }}>{title}</p>
+      <h2>{value}</h2>
+
+      <div
+        style={{
+          marginTop: "14px",
+          height: "8px",
+          background: "#1f2937",
+          borderRadius: "999px"
+        }}
+      >
+        <div
+          style={{
+            width: `${level}%`,
+            height: "100%",
+            background: level > 60 ? "#22c55e" : "#facc15",
+            borderRadius: "999px"
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ---------- DASHBOARD ---------- */
+export default function Dashboard() {
+  const [lang, setLang] = useState("en");
+
+  useEffect(() => {
+    const l = localStorage.getItem("lang");
+    if (l) setLang(l);
+  }, []);
+
+  const t = translations[lang];
+
+  // Demo hardware state
+  const isClogged = true;
+  const cloggedBranch = "A";
 
   return (
     <main
       style={{
         minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        padding: "40px",
         background: "radial-gradient(circle at top,#020617,#000)",
         color: "#ffffff",
-        fontFamily: "Segoe UI, sans-serif",
-        padding: "20px"
+        fontFamily: "Segoe UI, sans-serif"
       }}
     >
-      <form
-        onSubmit={handleSubmit}
+      {/* HEADER */}
+      <h1 style={{ fontWeight: 900, fontSize: "34px" }}>
+        {t.title}
+      </h1>
+      <p style={{ color: "#94a3b8" }}>{t.subtitle}</p>
+
+      {/* LANGUAGE */}
+      <select
+        value={lang}
+        onChange={(e) => {
+          setLang(e.target.value);
+          localStorage.setItem("lang", e.target.value);
+        }}
         style={{
-          width: "100%",
-          maxWidth: "420px",
-          background: "rgba(17,24,39,0.9)",
-          padding: "32px",
-          borderRadius: "24px",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6)"
+          marginTop: "12px",
+          padding: "6px 12px",
+          borderRadius: "8px",
+          background: "#020617",
+          color: "#fff",
+          border: "1px solid #334155"
         }}
       >
-        <h1 style={{ fontSize: "28px", fontWeight: 900 }}>
-          Farmer Details
-        </h1>
+        <option value="en">English</option>
+        <option value="hi">हिंदी</option>
+        <option value="mr">मराठी</option>
+      </select>
 
-        <p style={{ color: "#94a3b8", marginTop: "6px", marginBottom: "24px" }}>
-          Please enter basic farm information
-        </p>
+      {/* STATUS BADGE */}
+      <div
+        style={{
+          marginTop: "16px",
+          padding: "10px 22px",
+          borderRadius: "999px",
+          fontWeight: 900,
+          display: "inline-block",
+          background: isClogged
+            ? "linear-gradient(135deg,#ef4444,#b91c1c)"
+            : "linear-gradient(135deg,#22c55e,#16a34a)",
+          color: "#000"
+        }}
+      >
+        {isClogged ? `🔴 ${t.clogDetected}` : `🟢 ${t.systemNormal}`}
+      </div>
 
-        {/* NAME */}
-        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
-          Farmer Name
-        </label>
-        <input
-          type="text"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          required
-          placeholder="Enter your name"
-          style={inputStyle}
-        />
+      {/* STATUS CARDS */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+          gap: "24px",
+          marginTop: "32px"
+        }}
+      >
+        <StatusCard title={t.currentAction} value="Monitoring" level={70} />
+        <StatusCard title={t.pressureWash} value="OFF" level={20} />
+        <StatusCard title={t.acidPump} value="OFF" level={10} />
+        <StatusCard title={t.tankFlush} value="OFF" level={30} />
+      </div>
 
-        {/* CONTACT */}
-        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
-          Contact Number
-        </label>
-        <input
-          type="tel"
-          name="contact"
-          value={form.contact}
-          onChange={handleChange}
-          required
-          placeholder="Enter contact number"
-          style={inputStyle}
-        />
+      {/* PIPE NETWORK */}
+      <section style={{ marginTop: "48px" }}>
+        <h3>{t.pipeline}</h3>
 
-        {/* LAND AREA */}
-        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
-          Land Area (in acres)
-        </label>
-        <input
-          type="number"
-          name="landArea"
-          value={form.landArea}
-          onChange={handleChange}
-          required
-          placeholder="e.g. 2.5"
-          style={inputStyle}
-        />
-
-        {/* CROP TYPE */}
-        <label style={{ fontSize: "14px", color: "#9ca3af" }}>
-          Crop Grown
-        </label>
-        <select
-          name="crop"
-          value={form.crop}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        >
-          <option value="">Select crop</option>
-          <option value="Wheat">Wheat</option>
-          <option value="Rice">Rice</option>
-          <option value="Cotton">Cotton</option>
-          <option value="Soybean">Soybean</option>
-          <option value="Sugarcane">Sugarcane</option>
-          <option value="Vegetables">Vegetables</option>
-          <option value="Other">Other</option>
-        </select>
-
-        {/* SUBMIT */}
-        <button
-          type="submit"
+        <div
           style={{
-            marginTop: "28px",
-            width: "100%",
-            padding: "14px",
-            borderRadius: "14px",
+            marginTop: "16px",
+            background: "rgba(17,24,39,0.9)",
+            padding: "24px",
+            borderRadius: "20px"
+          }}
+        >
+          <PipeNetwork clogged={cloggedBranch} />
+          <p style={{ color: "#9ca3af", marginTop: "12px", fontSize: "14px" }}>
+            Red pipe section indicates detected clog.
+          </p>
+        </div>
+      </section>
+
+      {/* ML BUTTON */}
+      <Link href="/ml-predictions">
+        <button
+          style={{
+            marginTop: "48px",
+            padding: "16px 32px",
+            borderRadius: "18px",
             border: "none",
             background: "#22c55e",
             color: "#000",
@@ -141,22 +215,9 @@ export default function WelcomePage() {
             cursor: "pointer"
           }}
         >
-          Continue to Dashboard →
+          {t.viewML} →
         </button>
-      </form>
+      </Link>
     </main>
   );
 }
-
-/* ---------- INPUT STYLE ---------- */
-const inputStyle = {
-  width: "100%",
-  padding: "12px",
-  marginTop: "6px",
-  marginBottom: "18px",
-  borderRadius: "10px",
-  border: "1px solid #334155",
-  background: "#020617",
-  color: "#fff",
-  fontSize: "15px"
-};
