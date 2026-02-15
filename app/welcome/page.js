@@ -22,138 +22,104 @@ export default function WelcomePage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Store farmer info (optional, but useful later)
     localStorage.setItem("farmerInfo", JSON.stringify(form));
-
-    // Go to dashboard
     router.push("/dashboard");
   };
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "radial-gradient(circle at top,#020617,#000)",
-        color: "#ffffff",
-        fontFamily: "Segoe UI, sans-serif",
-        padding: "20px"
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          width: "100%",
-          maxWidth: "420px",
-          background: "rgba(17,24,39,0.9)",
-          padding: "32px",
-          borderRadius: "24px",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6)"
-        }}
-      >
-        <h1 style={{ fontSize: "28px", fontWeight: 900 }}>
-          Farmer Details
-        </h1>
+    <main className="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,#0B1220,transparent_60%)] bg-[#0B0E14] px-4 text-white">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            Welcome to{" "}
+            <span className="bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">
+              FertiGuard
+            </span>
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">
+            Smart fertigation starts with your farm details.
+          </p>
+        </div>
 
-        <p style={{ color: "#94a3b8", marginBottom: "24px" }}>
-          Enter basic farm information
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Farmer Name */}
+          <div>
+            <label className="text-xs text-slate-400">Farmer Name</label>
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              placeholder="Your name"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-[#0B0E14] px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+            />
+          </div>
+
+          {/* Contact */}
+          <div>
+            <label className="text-xs text-slate-400">Contact Number</label>
+            <input
+              type="tel"
+              name="contact"
+              value={form.contact}
+              onChange={handleChange}
+              required
+              placeholder="10-digit mobile number"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-[#0B0E14] px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+            />
+          </div>
+
+          {/* Land Area */}
+          <div>
+            <label className="text-xs text-slate-400">Land Area (acres)</label>
+            <input
+              type="number"
+              name="landArea"
+              value={form.landArea}
+              onChange={handleChange}
+              required
+              placeholder="e.g. 2.5"
+              className="mt-1 w-full rounded-xl border border-white/10 bg-[#0B0E14] px-3 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+            />
+          </div>
+
+          {/* Crop Type */}
+          <div>
+            <label className="text-xs text-slate-400">Crop Grown</label>
+            <select
+              name="crop"
+              value={form.crop}
+              onChange={handleChange}
+              required
+              className="mt-1 w-full rounded-xl border border-white/10 bg-[#0B0E14] px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+            >
+              <option value="">Select crop</option>
+              <option value="Wheat">Wheat</option>
+              <option value="Rice">Rice</option>
+              <option value="Cotton">Cotton</option>
+              <option value="Soybean">Soybean</option>
+              <option value="Sugarcane">Sugarcane</option>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            className="mt-6 w-full rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-600 px-4 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 transition hover:scale-[1.01] hover:shadow-emerald-500/40 active:scale-[0.99]"
+          >
+            Continue to Dashboard →
+          </button>
+        </form>
+
+        {/* Footer note */}
+        <p className="mt-6 text-center text-xs text-slate-500">
+          Your data is used only to personalize recommendations.
         </p>
-
-        {/* Farmer Name */}
-        <label style={labelStyle}>Farmer Name</label>
-        <input
-          type="text"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          required
-          placeholder="Enter your name"
-          style={inputStyle}
-        />
-
-        {/* Contact */}
-        <label style={labelStyle}>Contact Number</label>
-        <input
-          type="tel"
-          name="contact"
-          value={form.contact}
-          onChange={handleChange}
-          required
-          placeholder="Enter contact number"
-          style={inputStyle}
-        />
-
-        {/* Land Area */}
-        <label style={labelStyle}>Land Area (acres)</label>
-        <input
-          type="number"
-          name="landArea"
-          value={form.landArea}
-          onChange={handleChange}
-          required
-          placeholder="e.g. 2.5"
-          style={inputStyle}
-        />
-
-        {/* Crop Type */}
-        <label style={labelStyle}>Crop Grown</label>
-        <select
-          name="crop"
-          value={form.crop}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        >
-          <option value="">Select crop</option>
-          <option value="Wheat">Wheat</option>
-          <option value="Rice">Rice</option>
-          <option value="Cotton">Cotton</option>
-          <option value="Soybean">Soybean</option>
-          <option value="Sugarcane">Sugarcane</option>
-          <option value="Vegetables">Vegetables</option>
-          <option value="Other">Other</option>
-        </select>
-
-        {/* Submit */}
-        <button
-          type="submit"
-          style={{
-            marginTop: "24px",
-            width: "100%",
-            padding: "14px",
-            borderRadius: "14px",
-            border: "none",
-            background: "#22c55e",
-            color: "#000",
-            fontWeight: 900,
-            fontSize: "16px",
-            cursor: "pointer"
-          }}
-        >
-          Continue to Dashboard →
-        </button>
-      </form>
+      </div>
     </main>
   );
 }
-
-/* ---------- STYLES ---------- */
-const inputStyle = {
-  width: "100%",
-  padding: "12px",
-  marginTop: "6px",
-  marginBottom: "18px",
-  borderRadius: "10px",
-  border: "1px solid #334155",
-  background: "#020617",
-  color: "#fff",
-  fontSize: "15px"
-};
-
-const labelStyle = {
-  fontSize: "14px",
-  color: "#9ca3af"
-};
