@@ -23,3 +23,70 @@ html, body {
     background-position: -200% 0;
   }
 }
+.glass {
+  background: rgba(17,24,39,0.7);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+@layer base {
+  body {
+    @apply bg-[#020617] text-slate-50;
+  }
+}
+
+.bg-grid-pattern {
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.glow-shadow-emerald {
+  box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.3);
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s infinite;
+}
+
+.glass-panel {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(2, 6, 23, 0.8) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+}
+
+.text-glow-emerald {
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}
+@layer utilities {
+  .glow-mesh {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.1) 0, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0, transparent 50%);
+  }
+}
+
+/* Custom glow for Recharts lines */
+.recharts-curve.recharts-area-curve {
+  filter: drop-shadow(0px 0px 6px rgba(16, 185, 129, 0.8));
+}
+@layer utilities {
+  .glow-border-emerald {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2), inset 0 0 10px rgba(16, 185, 129, 0.1);
+  }
+  .text-glow {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* Make Recharts look high-end */
+.recharts-polar-grid-concentric-path {
+  stroke: rgba(255,255,255,0.05) !important;
+}
+.recharts-polar-angle-axis-line {
+  stroke: rgba(255,255,255,0.1) !important;
+}
