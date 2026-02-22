@@ -2,193 +2,213 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import ChartCard from "../../src/components/visuals/ChartCard";
-import Badge from "../../src/components/visuals/Badge";
-import PrimaryButton from "../../src/components/visuals/PrimaryButton";
-
-export default function MLPredictionPage() {
-
-  const [prediction, setPrediction] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [confidence, setConfidence] = useState(0);
-
-  /* ---------------- ML SIMULATION ---------------- */
-  useEffect(() => {
-
-    setTimeout(() => {
-      setPrediction({
-        clog_risk: "HIGH",
-        probability: 82,
-        predicted_clog_type: "Chemical Scaling",
-        recommended_action: "Acid Flush",
-        recommended_duration_sec: 5,
-        maintenance_prediction: "No maintenance required for next 14 days",
-        explanation:
-          "ML model detected decreasing pH trend and pressure instability. Pattern matches historical chemical scaling events.",
-      });
-
-      setLoading(false);
-    }, 1500);
-
-  }, []);
-
-  /* confidence animation */
-  useEffect(() => {
-    if (!prediction) return;
-
-    let i = 0;
-    const timer = setInterval(() => {
-      i += 2;
-      setConfidence(i);
-      if (i >= prediction.probability) clearInterval(timer);
-    }, 30);
-
-    return () => clearInterval(timer);
-  }, [prediction]);
-
-  /* ---------------- UI ---------------- */
-
-  return (
-    <main className="min-h-screen p-6 sm:p-10"
-      style={{ background: "radial-gradient(circle at top,#020617,#000)" }}
-    >
-      <div className="max-w-6xl mx-auto space-y-8">
-
-        {/* HEADER */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-extrabold">
-              AI Clog Intelligence
-            </h1>
-
-            <p className="text-sm text-slate-400 mt-1">
-              Machine learning prediction & preventive automation
-            </p>
-          </div>
-
-          <Badge tone={prediction?.clog_risk === "HIGH" ? "critical" : "healthy"}>
-            AI ACTIVE
-          </Badge>
-        </div>
-
-        {/* LOADING */}
-        {loading && (
-          <div className="text-lg font-semibold text-slate-400">
-            Running ML model analysis...
-          </div>
-        )}
-
-        {/* RESULTS */}
-        {prediction && (
-
-          <>
-            {/* RISK VISUAL */}
-            <div className="bg-[rgba(17,24,39,0.85)] rounded-2xl p-6 border border-white/5">
-
-              <div className="flex justify-between mb-4">
-                <h2 className="font-bold text-lg">Clog Risk Probability</h2>
-                <span className="text-red-400 font-bold">
-                  {confidence}%
-                </span>
-              </div>
-
-              <div className="h-3 bg-black/40 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-400 to-red-500 transition-all duration-300"
-                  style={{ width: `${confidence}%` }}
-                />
-              </div>
-            </div>
-
-            {/* MAIN GRID */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-              {/* ML OUTPUT */}
-              <ChartCard title="ML Prediction Result" hint="Neural inference output">
-
-                <div className="space-y-4">
-
-                  <InfoRow label="Clog Type" value={prediction.predicted_clog_type}/>
-                  <InfoRow label="Recommended Action" value={prediction.recommended_action}/>
-                  <InfoRow label="Flush Duration" value={`${prediction.recommended_duration_sec} sec`} />
-
-                </div>
-
-              </ChartCard>
-
-              {/* PREVENTION PANEL */}
-              <ChartCard title="Preventive Automation" hint="AI mitigation plan">
-
-                <div className="space-y-4">
-
-                  <ActionCard
-                    title="Acid Flush"
-                    desc="Prevents next 5% clog probability"
-                    active
-                  />
-
-                  <ActionCard
-                    title="Pressure Stabilization"
-                    desc="Balances pipeline turbulence"
-                  />
-
-                  <ActionCard
-                    title="Auto Maintenance Delay"
-                    desc={prediction.maintenance_prediction}
-                  />
-
-                </div>
-
-              </ChartCard>
-            </div>
-
-            {/* AI EXPLANATION */}
-            <div className="bg-[rgba(17,24,39,0.85)] rounded-2xl p-6 border border-white/5">
-
-              <h3 className="font-semibold text-lg mb-3">
-                AI Reasoning
-              </h3>
-
-              <p className="text-slate-300 leading-relaxed">
-                {prediction.explanation}
-              </p>
-            </div>
-
-          </>
-        )}
-
-        {/* BACK BUTTON */}
-        <Link href="/dashboard">
-          <PrimaryButton>
-            ← Back to Dashboard
-          </PrimaryButton>
-        </Link>
-
-      </div>
-    </main>
-  );
-}
+import { motion, AnimatePresence } from "framer-motion";
 
 /* ---------- SMALL COMPONENTS ---------- */
 
-function InfoRow({ label, value }) {
-  return (
-    <div className="flex justify-between border-b border-white/5 pb-2">
-      <span className="text-slate-400 text-sm">{label}</span>
-      <span className="font-semibold">{value}</span>
-    </div>
-  );
-}
+const Card = ({ title, children }) => (
+  <div className="bg-[rgba(17,24,39,0.9)] border border-white/5 rounded-2xl p-6 shadow-xl">
+    <p className="text-sm text-slate-400">{title}</p>
+    <div className="mt-2 text-lg font-semibold">{children}</div>
+  </div>
+);
 
-function ActionCard({ title, desc, active }) {
+const ActionButton = ({ label, color, onClick }) => (
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={onClick}
+    className={`px-5 py-3 rounded-xl font-bold ${color}`}
+  >
+    {label}
+  </motion.button>
+);
+
+/* ---------- MAIN PAGE ---------- */
+
+export default function MLPredictionPage() {
+  const [prediction, setPrediction] = useState(null);
+  const [executing, setExecuting] = useState(false);
+  const [actionText, setActionText] = useState("");
+
+  /* ---- Fake ML Load ---- */
+  useEffect(() => {
+    setTimeout(() => {
+      setPrediction({
+        clog_risk: 82,
+        clog_type: "Chemical Scaling",
+        recommendation: "Acid Flush",
+        duration: 5,
+        explanation:
+          "AI detected decreasing pH trend with pressure instability. Pattern matches historical chemical scaling events.",
+      });
+    }, 1200);
+  }, []);
+
+  /* ---- Execute AI Action ---- */
+  const runAction = (text) => {
+    setActionText(text);
+    setExecuting(true);
+
+    setTimeout(() => {
+      setExecuting(false);
+    }, 2200);
+  };
+
   return (
-    <div className={`p-4 rounded-xl border transition
-      ${active
-        ? "border-emerald-500/30 bg-emerald-500/10"
-        : "border-white/5 bg-white/5"}
-    `}>
-      <p className="font-semibold">{title}</p>
-      <p className="text-sm text-slate-400 mt-1">{desc}</p>
-    </div>
+    <main className="min-h-screen p-10 text-white"
+      style={{ background: "radial-gradient(circle at top,#020617,#000)" }}
+    >
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-4xl font-extrabold">
+            🤖 AI Clog Intelligence
+          </h1>
+          <p className="text-slate-400 mt-1">
+            Machine learning prediction & preventive automation
+          </p>
+        </div>
+
+        <div className="px-4 py-2 bg-red-500 rounded-full font-bold text-black">
+          AI ACTIVE
+        </div>
+      </div>
+
+      {/* LOADING */}
+      {!prediction && (
+        <p className="mt-10 font-bold animate-pulse">
+          Running neural inference...
+        </p>
+      )}
+
+      {/* CONTENT */}
+      {prediction && (
+        <>
+          {/* RISK BAR */}
+          <div className="mt-10 bg-slate-900 rounded-2xl p-6">
+            <p className="font-bold mb-3">Clog Risk Probability</p>
+
+            <div className="w-full h-4 bg-black rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${prediction.clog_risk}%` }}
+                transition={{ duration: 1 }}
+                className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500"
+              />
+            </div>
+
+            <p className="mt-2 text-right text-red-400 font-bold">
+              {prediction.clog_risk}%
+            </p>
+          </div>
+
+          {/* GRID */}
+          <div className="grid lg:grid-cols-2 gap-6 mt-8">
+
+            {/* ML RESULT */}
+            <div className="space-y-4">
+              <Card title="Clog Type">
+                🧪 {prediction.clog_type}
+              </Card>
+
+              <Card title="Recommended Action">
+                ⚡ {prediction.recommendation}
+              </Card>
+
+              <Card title="Flush Duration">
+                ⏱ {prediction.duration} sec
+              </Card>
+            </div>
+
+            {/* AI AUTOMATION */}
+            <div className="bg-slate-900 rounded-2xl p-6 space-y-4">
+              <h3 className="font-bold text-lg">
+                Preventive Automation
+              </h3>
+
+              <div className="p-4 bg-emerald-900/30 rounded-xl">
+                🧪 Acid Flush — prevents next 5% clog probability
+              </div>
+
+              <div className="p-4 bg-blue-900/20 rounded-xl">
+                💧 Water Stabilization — balances turbulence
+              </div>
+
+              <div className="p-4 bg-slate-800 rounded-xl">
+                🛠 No maintenance required for 14 days
+              </div>
+            </div>
+          </div>
+
+          {/* AI REASONING */}
+          <div className="mt-8 bg-slate-900 rounded-2xl p-6">
+            <h3 className="font-bold mb-2">AI Reasoning</h3>
+            <p className="text-slate-300">
+              {prediction.explanation}
+            </p>
+          </div>
+
+          {/* ACTION CONTROLS */}
+          <div className="mt-10">
+            <h3 className="font-bold mb-4">
+              Preventive Controls
+            </h3>
+
+            <div className="flex flex-wrap gap-4">
+              <ActionButton
+                label="🧪 Acid Flush (2s)"
+                color="bg-emerald-500 text-black"
+                onClick={() => runAction("Acid Flush Initiated")}
+              />
+
+              <ActionButton
+                label="💧 Water Flush (2s)"
+                color="bg-blue-500 text-black"
+                onClick={() => runAction("Water Flush Running")}
+              />
+
+              <ActionButton
+                label="⏭ Ignore Recommendation"
+                color="bg-slate-700"
+                onClick={() => runAction("Recommendation Ignored")}
+              />
+            </div>
+          </div>
+
+          {/* BACK */}
+          <Link href="/">
+            <button className="mt-12 px-6 py-3 bg-white text-black rounded-xl font-bold">
+              ← Back to Dashboard
+            </button>
+          </Link>
+        </>
+      )}
+
+      {/* EXECUTION MODAL */}
+      <AnimatePresence>
+        {executing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              className="bg-slate-900 p-8 rounded-2xl text-center"
+            >
+              <div className="animate-spin text-3xl mb-4">⚙️</div>
+              <p className="font-bold">{actionText}</p>
+              <p className="text-sm text-slate-400 mt-2">
+                AI executing preventive automation...
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
   );
 }
