@@ -1,4 +1,8 @@
 // This stores the latest data sent by ESP32
+
+import { NextResponse } from "next/server";
+
+
 let latestHardwareData = {
   system_mode: "NORMAL",
   current_action: "Monitoring",
