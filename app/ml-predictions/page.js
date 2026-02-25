@@ -81,13 +81,27 @@ export default function MLPredictionPage() {
   const [logs, setLogs] = useState(["Neural cluster online", "Sensor sync: 100%", "Monitoring Water Flow..."]);
 
   // --- CHATBOT STATE ---
+  const thinkingStates = [
+  "Analyzing hydraulic patterns...",
+  "Running ML inference...",
+  "Evaluating clog probability...",
+  "Cross-checking sensor trends..."
+];
+
+const [thinkingIndex, setThinkingIndex] = useState(0);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [messages, setMessages] = useState([
     { role: 'ai', text: 'Hydraulic AI online. Monitoring Clog Farming parameters. How can I assist?' }
   ]);
   const chatEndRef = useRef(null);
+useEffect(() => {
+  const interval = setInterval(() => {
+    setThinkingIndex(i => (i + 1) % thinkingStates.length);
+  }, 800);
 
+  return () => clearInterval(interval);
+}, []);
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isChatOpen]);
@@ -120,32 +134,58 @@ export default function MLPredictionPage() {
   };
 
   // --- CHAT LOGIC ---
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+const handleSendMessage = async (e) => {
+  e.preventDefault();
+  if (!chatInput.trim()) return;
 
-    const userMessage = { role: 'user', text: chatInput };
-    setMessages(prev => [...prev, userMessage]);
-    const prompt = chatInput.toLowerCase();
-    setChatInput("");
+  const msg = chatInput;
 
-    setTimeout(() => {
-      let aiText = "I'm analyzing that query against our flow database. Generally, maintaining pH below 7.5 helps prevent clog hardening.";
+  // add user message
+  setMessages(prev => [...prev, { role: "user", text: msg }]);
+  setChatInput("");
+
+  // typing indicator
+  setMessages(prev => [...prev, { role: "ai", text: thinkingStates[thinkingIndex], thinking: true }]);
+
+  try {
+    const res = await fetch("/api/ai-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: msg,
+        systemState: {
+          risk,
+          prediction: prediction?.clog_type,
+          ph: "7.2",
+          turbidity: "4.2",
+          flow: "1.8",
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    // replace typing message with AI reply
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[updated.length - 1] = {
+        role: "ai",
+        text: data.reply,
+      };
+      return updated;
+    });
+
+  } catch (error) {
+    console.error(error);
+    setMessages(prev => [
+      ...prev,
+      { role: "ai", text: "AI connection error." },
+    ]);
+  }
+};
       
-      if (prompt.includes("clog") || prompt.includes("farming")) {
-        aiText = "In clog farming, we optimize particulate capture. Currently, Node 04 is showing 94% capture efficiency with a 38% risk of total blockage.";
-      } else if (prompt.includes("ph")) {
-        aiText = "The current pH is 7.2. If it exceeds 8.0, we expect calcium carbonate precipitation, which accelerates clogging.";
-      } else if (prompt.includes("turbidity")) {
-        aiText = "Turbidity is at 4.2 NTU. Higher turbidity usually correlates with faster buildup in the filter mesh.";
-      } else if (prompt.includes("status") || prompt.includes("risk")) {
-        aiText = `The current system risk is ${risk}%. Neural inference suggests a 'Backwash Sequence' if this exceeds 50%.`;
-      }
-      
-      setMessages(prev => [...prev, { role: 'ai', text: aiText }]);
-    }, 800);
-  };
-
   return (
     <main className="min-h-screen bg-[#020617] text-slate-200 p-4 lg:p-8 font-sans selection:bg-emerald-500/30">
       
@@ -338,7 +378,12 @@ export default function MLPredictionPage() {
                 {messages.map((m, i) => (
                   <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] p-4 rounded-2xl text-[12px] leading-relaxed shadow-sm ${m.role === 'user' ? 'bg-emerald-500 text-black font-bold rounded-tr-none' : 'bg-white/5 text-slate-300 border border-white/10 rounded-tl-none'}`}>
-                      {m.text}
+                      <motion.span
+  animate={m.thinking ? { opacity:[0.5,1,0.5] } : {}}
+  transition={{ duration:1.2, repeat:Infinity }}
+>
+  {m.text}
+</motion.span>
                     </div>
                   </div>
                 ))}
