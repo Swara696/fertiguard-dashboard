@@ -14,8 +14,8 @@ import Skeleton from "@/app/components/Skeleton";
 import ChartCard from "@/app/components/ChartCard";
 import LineChart from "@/app/components/LineChart";
 
-import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
-import { db } from "@/app/lib/firebase";
+import { ref, onValue } from "firebase/database";
+import { rtdb } from "@/app/lib/firebase";
 
 export default function Dashboard() {
   const [lang, setLang] = useState("en");
@@ -43,13 +43,22 @@ export default function Dashboard() {
 
   const [latest, setLatest] = useState(null);
 
+  // FIXED: Using Realtime Database syntax (ref + onValue)
   useEffect(() => {
-    const q = query(collection(db, "readings"), orderBy("timestamp", "desc"), limit(5));
-    const unsub = onSnapshot(q, (snap) => {
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setLatest(docs);
+    const readingsRef = ref(rtdb, "readings");
+    const unsubscribe = onValue(readingsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Convert object of objects to array and sort by timestamp if necessary
+        const docs = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })).reverse().slice(0, 5); // Taking latest 5
+        setLatest(docs);
+      }
     });
-    return () => unsub();
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
