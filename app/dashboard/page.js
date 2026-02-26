@@ -1,6 +1,6 @@
 "use client";
 
-export const runtime = "edge";
+
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import ChartCard from "@/app/components/ChartCard";
 import LineChart from "@/app/components/LineChart";
 
 import { ref, onValue } from "firebase/database";
-import { rtdb } from "@/app/lib/firebase";
+import { db } from "../lib/firebase";
 
 export default function Dashboard() {
   const [lang, setLang] = useState("en");
@@ -57,30 +57,21 @@ export default function Dashboard() {
 
   // ✅ REALTIME DATABASE LISTENER (FIXED LOGIC)
 useEffect(() => {
-  const readingsRef = ref(rtdb, "readings");
 
-  const unsubscribe = onValue(readingsRef, (snapshot) => {
+  const readingsRef = ref(db, "readings");
+
+  onValue(readingsRef, (snapshot) => {
+
     const data = snapshot.val();
-    console.log("🔥 RTDB snapshot:", data);
 
-    if (!data) {
-      setLatest([]);
-      return;
-    }
+    if (!data) return;
 
-    const docs = Object.entries(data)
-      .map(([id, value]) => ({
-        id,
-        ...value,
-        timestamp: value?.timestamp || Date.now(), // fallback
-      }))
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 5);
+    // convert firebase object → array
+    const arr = Object.values(data);
 
-    setLatest(docs);
+    setLatest(arr);
   });
 
-  return () => unsubscribe();
 }, []);
 
   // Live Simulation Interval
