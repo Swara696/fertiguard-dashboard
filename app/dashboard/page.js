@@ -227,6 +227,7 @@ useEffect(() => {
             <div className="rounded-2xl overflow-hidden border border-white/5 bg-slate-950/50 p-4">
               <PipeNetwork clogged={cloggedBranch} clogSeverity={clogSeverity} />
             </div>
+            
           </div>
 
           <div className="bg-slate-900/40 border border-white/5 rounded-[2rem] p-8 flex flex-col justify-between">

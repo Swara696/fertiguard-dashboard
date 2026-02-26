@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useRef, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -10,74 +9,70 @@ import {
   LineElement,
   Filler,
   Tooltip,
-  Legend,
-  TimeScale,
-  Title
 } from 'chart.js';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend, TimeScale, Title);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-export default function LineChart({ labels = [], data = [], accent = '#10B981', unit = '', height = 200 }) {
-  const chartRef = useRef(null);
-
+export default function LineChart({ labels = [], data = [], accent = '#10B981', height = 220 }) {
   const datasets = useMemo(() => ({
     labels,
     datasets: [
       {
-        label: unit || 'Value',
         data,
         fill: true,
-        tension: 0.35,
-        borderWidth: 2.5,
+        tension: 0.45, // Smoother "Startup" curves
+        borderWidth: 2,
         pointRadius: 0,
-        pointHoverRadius: 5,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: accent,
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 2,
         borderColor: accent,
-        backgroundColor: function(context) {
-          const chart = context.chart;
-          const { ctx, chartArea } = chart;
-          if (!chartArea) return accent;
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, `${accent}33`); // 20% alpha
-          gradient.addColorStop(0.6, `${accent}15`);
-          gradient.addColorStop(1, `rgba(10,10,10,0.02)`);
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+          gradient.addColorStop(0, `${accent}33`); // Transparent accent
+          gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
           return gradient;
-        }
+        },
       }
     ]
-  }), [labels, data, accent, unit]);
+  }), [labels, data, accent]);
 
-  const options = useMemo(() => ({
+  const options = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#0b1220',
-        titleColor: '#e6eef1',
-        bodyColor: '#e6eef1',
-        borderColor: 'rgba(255,255,255,0.04)',
+        mode: 'index',
+        intersect: false,
+        backgroundColor: '#111827',
+        titleFont: { size: 12, weight: 'bold' },
+        bodyFont: { size: 12 },
+        padding: 12,
+        cornerRadius: 12,
+        borderColor: 'rgba(255,255,255,0.1)',
         borderWidth: 1,
-        padding: 8
+        displayColors: false
       }
     },
     scales: {
       x: {
-        ticks: { color: 'rgba(230,238,241,0.9)', maxRotation: 0 },
-        grid: { color: 'rgba(255,255,255,0.03)' }
+        grid: { display: false },
+        ticks: { color: '#4B5563', font: { size: 10 } }
       },
       y: {
-        ticks: { color: 'rgba(230,238,241,0.9)' },
-        grid: { color: 'rgba(255,255,255,0.03)' }
+        border: { display: false },
+        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+        ticks: { color: '#4B5563', font: { size: 10 }, maxTicksLimit: 5 }
       }
-    },
-    elements: { point: { hoverRadius: 6 } },
-    transitions: { show: { animations: { x: { from: 0 }, y: { from: 0 } } }, hide: { animations: { x: { to: 0 }, y: { to: 0 } } } }
-  }), []);
+    }
+  };
 
   return (
     <div style={{ height }} className="w-full">
-      <Line ref={chartRef} data={datasets} options={options} />
+      <Line data={datasets} options={options} />
     </div>
   );
 }
