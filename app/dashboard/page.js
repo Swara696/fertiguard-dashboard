@@ -23,8 +23,10 @@ export default function Dashboard() {
   const [showWarning, setShowWarning] = useState(false);
   const [liveMode, setLiveMode] = useState(false);
   const [clogSeverity, setClogSeverity] = useState("medium");
-  const [latest, setLatest] = useState([]);
-
+  const [latest, setLatest] = useState({});
+const [phHistory, setPhHistory] = useState(new Array(20).fill(0));
+  const [flowHistory, setFlowHistory] = useState(new Array(20).fill(0));
+  const [timeLabels, setTimeLabels] = useState(new Array(20).fill("--:--"));
   // Translation mapping
   useEffect(() => {
     const l = localStorage.getItem("lang");
@@ -56,21 +58,26 @@ export default function Dashboard() {
   );
 
   // ✅ REALTIME DATABASE LISTENER (FIXED LOGIC)
+
+
 useEffect(() => {
 
   const readingsRef = ref(db, "readings");
 
-  onValue(readingsRef, (snapshot) => {
-
+  const unsubscribe = onValue(readingsRef, (snapshot) => {
     const data = snapshot.val();
 
-    if (!data) return;
+    console.log("🔥 Firebase Data:", data); // DEBUG
 
-    // convert firebase object → array
-    const arr = Object.values(data);
-
-    setLatest(arr);
+    if (data) {
+      setLatest(data);
+    }
   });
+
+  // correct cleanup
+  return () => {
+    unsubscribe();
+  };
 
 }, []);
 
@@ -90,10 +97,24 @@ useEffect(() => {
 
     return () => clearInterval(interval);
   }, [liveMode]);
+useEffect(() => {
+    if (latest["FG-01"]) {
+      const node = latest["FG-01"];
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      setPhHistory(prev => [...prev.slice(1), Number(node.ph || 0)]);
+      setFlowHistory(prev => [...prev.slice(1), Number(node.startFlow || 0)]);
+      setTimeLabels(prev => [...prev.slice(1), now]);
+    }
+  }, [latest]);
   // ✅ MAP DATA TO NODES
-  const node1 = latest?.find((r) => r.deviceId === "FG-01");
-  const node2 = latest?.find((r) => r.deviceId === "FG-02");
+const node1 = latest["FG-01"];
+const node2 = latest["FG-01"];
+/* ===== HARDWARE STATES FROM FIREBASE ===== */
+
+const mainSolenoidActive = Number(node1?.mainSolenoid) === 1;
+const flushPumpActive = Number(node1?.flushPump) === 1;
+const acidInjectionActive = Number(node1?.acidInjection) === 1;
 
   return (
     <main
@@ -163,7 +184,7 @@ useEffect(() => {
               <div className="grid grid-cols-2 gap-4">
                 <Metric label="pH Level" value={node1?.ph ?? "--"} unit="" glow="cyan" />
                 <Metric label="Turbidity" value={node1?.turbidity ?? "--"} unit="NTU" glow="emerald" />
-                <Metric label="Flow Rate" value={node1?.flow ?? "--"} unit="L/min" glow="indigo" />
+                <Metric label="Flow Rate" value={node1?.startFlow ?? "--"} unit="L/min" glow="indigo" />
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-center">
                   <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-3">Solenoid Matrix</div>
                   <div className="flex flex-wrap gap-2">
@@ -195,24 +216,69 @@ useEffect(() => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <Metric label="Output Flow" value={node2?.flow ?? "--"} unit="L/min" glow="emerald" />
-                <StatusMetric label="Main Pump" on={pressureWash} />
-                <StatusMetric label="Flush Solenoid" on={tankFlush} />
-                <StatusMetric label="Acid Injection" on={acidPump} />
+                <Metric
+  label="Output Flow"
+  value={node1?.endFlow ?? "--"}
+  unit="L/min"
+  glow="emerald"
+/>
+<StatusMetric
+  label="Main Pump"
+  on={mainSolenoidActive}
+/>
+
+<StatusMetric
+  label="Flush Solenoid"
+  on={flushPumpActive}
+/>
+
+<StatusMetric
+  label="Acid Injection"
+  on={acidInjectionActive}
+/>
+<Metric
+  label="System Mode"
+  value={node1?.mode ?? "--"}
+  unit=""
+/>
               </div>
             </div>
           </div>
         </section>
 
+
         {/* ANALYTICS SECTION */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <ChartCard title="Soil Moisture Trends">
-            <LineChart labels={labels} data={soilData} accent="#10B981" unit="%" height={250} />
-          </ChartCard>
-          <ChartCard title="Hydraulic Pressure">
-            <LineChart labels={labels} data={pressureData} accent="#38bdf8" unit="bar" height={250} />
-          </ChartCard>
-        </section>
+<section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <ChartCard 
+    title="pH Level Stability" 
+    subtitle="Real-time acidity monitoring"
+  >
+    <div className="mt-4">
+      <LineChart 
+        labels={timeLabels} 
+        data={phHistory} 
+        accent="#22d3ee" // Cyan
+        unit="pH" 
+        height={280} 
+      />
+    </div>
+  </ChartCard>
+
+  <ChartCard 
+    title="Inlet Flow Velocity" 
+    subtitle="Live hydraulic throughput"
+  >
+    <div className="mt-4">
+      <LineChart 
+        labels={timeLabels} 
+        data={flowHistory} 
+        accent="#818cf8" // Indigo
+        unit="L/min" 
+        height={280} 
+      />
+    </div>
+  </ChartCard>
+</section>
 
         {/* INFRASTRUCTURE SECTION */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -321,9 +387,18 @@ function Metric({ label, value, unit, glow }) {
 function StatusMetric({ label, on }) {
   return (
     <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/5 transition-all">
-      <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">{label}</div>
-      <div className={`text-lg font-black tracking-tight ${on ? "text-emerald-400" : "text-slate-600"}`}>
-        {on ? "ACTIVE" : "STANDBY"}
+      <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+        {label}
+      </div>
+
+      <div
+        className={`text-lg font-black tracking-tight ${
+          on
+            ? "text-emerald-400"
+            : "text-rose-400"
+        }`}
+      >
+        {on ? "OPEN" : "CLOSED"}
       </div>
     </div>
   );
